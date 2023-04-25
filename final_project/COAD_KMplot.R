@@ -2,7 +2,7 @@
 # Colorectal Cancer Kaplan Meier Plot
 
 # Set Working Directory
-setwd("/Users/nataliefortunato/Documents/qbio_490_nataliefortunato")
+setwd("/Users/nataliefortunato/Documents/qbio_490_nataliefortunato/final_project")
 
 
 # Download Libraries
@@ -19,7 +19,7 @@ GDCdownload(clin_query)
 clinic <- GDCprepare_clinic(clin_query, clinical.info = "patient")
 
 # Error in TCGABiolinks Query (missing vital_status data)
-clinic <- read.csv("/Users/nataliefortunato/Documents/qbio_490_nataliefortunato/harmonized_coad_clinical.csv")
+clinic <- read.csv("/Users/nataliefortunato/Documents/qbio_490_nataliefortunato/final_project/harmonized_coad_clinical.csv")
 
 maf_query <- GDCquery(
   project = "TCGA-COAD", 
@@ -63,6 +63,39 @@ cleaned_clinic <- cleaned_clinic[inf_mask, ]
 cleaned_clinic$death_event <- ifelse(cleaned_clinic$vital_status == "Alive",
                                     cleaned_clinic$death_event <- FALSE,
                                     cleaned_clinic$death_event <- TRUE)
+
+#initializing a survival object
+surv_object_age <- Surv(time = cleaned_clinic$survival_time, event = 
+                          cleaned_clinic$death_event)
+
+#creating a fit object
+age_fit <- survfit(surv_object_age ~ cleaned_clinic$age_status, data = cleaned_clinic)
+
+#format and create KM plot
+survplot_age <- ggsurvplot(age_fit, pval=TRUE, ggtheme = theme(plot.margin = unit(c(1,1,1,1),
+                                                                                  "cm")),
+                           legend = "right")
+
+#save the plot to a variable
+KM_plot_age <- survplot_age$plot + theme_bw() + theme(axis.title = element_text(size=20),
+                                                           axis.text = element_text(size=16),
+                                                           legend.title = element_text(size=14),
+                                                           legend.text = element_text(size=12))
+
+#show plot
+KM_plot_age
+
+#save plot
+jpeg("/Users/nataliefortunato/Documents/qbio_490_nataliefortunato/COAD_KM_plot_age.jpg")
+KM_plot_age <- survplot_age$plot + theme_bw() + theme(axis.title = element_text(size=20),
+                                                           axis.text = element_text(size=16),
+                                                           legend.title = element_text(size=14),
+                                                           legend.text = element_text(size=12))
+KM_plot_age
+dev.off()
+
+
+
 
 ################ Male Plot ####################
 male_mask <- ifelse((cleaned_clinic$gender == 'MALE'), T, F)
